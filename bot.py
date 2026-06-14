@@ -17,13 +17,11 @@ logger = logging.getLogger(__name__)
 dp = Dispatcher()
 
 GREET_MESSAGE = (
-    "Привет! Отправь мне ссылку на пост, reels или stories из Instagram, "
-    "а я пришлю ссылку для kkclip.com."
+    "Привет! Отправь мне ссылку на reels из Instagram, а я пришлю ссылку для kkclip.com."
 )
 
 UNSUPPORTED_LINK_MESSAGE = (
-    "Не получилось распознать эту ссылку. Пришли ссылку на конкретный пост, "
-    "reels или stories из Instagram."
+    "Не получилось распознать эту ссылку. Пришли ссылку на конкретный reels из Instagram."
 )
 
 
@@ -51,11 +49,11 @@ async def convert_link(message: Message):
     path_parts = [part for part in parsed.path.split("/") if part]
 
     match path_parts:
-        case ["p" | "reel" | "reels", _]:
+        case ["reel" | "reels", _]:
             pass
-        case ["stories", _, _]:
+        case ["share", "reel", _]:
             pass
-        case ["share", "p" | "reel", _]:
+        case [_, "reel" | "reels", _]:
             pass
         case _:
             await message.answer(
