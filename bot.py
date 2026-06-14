@@ -17,8 +17,13 @@ logger = logging.getLogger(__name__)
 dp = Dispatcher()
 
 GREET_MESSAGE = (
-    "Привет! Отправь мне ссылку на пост, рилс или историю из Instagram, "
+    "Привет! Отправь мне ссылку на пост, reels или stories из Instagram, "
     "а я пришлю ссылку для kkclip.com."
+)
+
+UNSUPPORTED_LINK_MESSAGE = (
+    "Не получилось распознать эту ссылку. Пришли ссылку на конкретный пост, "
+    "reels или stories из Instagram."
 )
 
 
@@ -35,12 +40,29 @@ async def convert_link(message: Message):
     text = message.text if "://" in message.text else f"//{message.text}"
     parsed = urlparse(text)
     host = parsed.netloc.lower()
+
     if host != "instagram.com" and not host.endswith(".instagram.com"):
         await message.answer(
             GREET_MESSAGE,
             link_preview_options=LinkPreviewOptions(is_disabled=True),
         )
         return
+
+    path_parts = [part for part in parsed.path.split("/") if part]
+
+    match path_parts:
+        case ["p" | "reel" | "reels", _]:
+            pass
+        case ["stories", _, _]:
+            pass
+        case ["share", "p" | "reel", _]:
+            pass
+        case _:
+            await message.answer(
+                UNSUPPORTED_LINK_MESSAGE,
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
+            )
+            return
 
     preload_link = f"https://www.kkclip.com{parsed.path}"
     logger.info("user=%s converted %r -> %r", message.from_user.id, message.text, preload_link)
