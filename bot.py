@@ -1,7 +1,7 @@
 import asyncio
 import logging
 import os
-import re
+from urllib.parse import urlparse
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
@@ -12,29 +12,39 @@ load_dotenv()
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 
-REEL_RE = re.compile(r"instagram\.com/reel/([A-Za-z0-9_-]+)")
-
 logger = logging.getLogger(__name__)
 
 dp = Dispatcher()
+
+GREET_MESSAGE = (
+    "Привет! Отправь мне ссылку на пост, рилс или историю из Instagram, "
+    "а я пришлю ссылку для kkclip.com."
+)
 
 
 @dp.message(CommandStart())
 async def start(message: Message):
     await message.answer(
-        "Привет! Отправь мне ссылку на Instagram Reels вида\n"
-        "https://www.instagram.com/reel/<ID>/\n"
-        "и я пришлю ссылку для kkclip.com.",
+        GREET_MESSAGE,
         link_preview_options=LinkPreviewOptions(is_disabled=True),
     )
 
 
-@dp.message(F.text.regexp(REEL_RE, mode="search"))
+@dp.message(F.text)
 async def convert_link(message: Message):
-    reel_id = REEL_RE.search(message.text).group(1)
-    result = f"https://www.kkclip.com/reel/{reel_id}/"
-    logger.info("user=%s converted %r -> %r", message.from_user.id, message.text, result)
-    await message.answer(result)
+    text = message.text if "://" in message.text else f"//{message.text}"
+    parsed = urlparse(text)
+    host = parsed.netloc.lower()
+    if host != "instagram.com" and not host.endswith(".instagram.com"):
+        await message.answer(
+            GREET_MESSAGE,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
+        return
+
+    preload_link = f"https://www.kkclip.com{parsed.path}"
+    logger.info("user=%s converted %r -> %r", message.from_user.id, message.text, preload_link)
+    await message.answer(preload_link)
 
 
 async def main():

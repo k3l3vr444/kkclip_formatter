@@ -17,19 +17,25 @@ https://www.kkclip.com/reel/DWZB5BfgO77/
 
 ## Running
 
-1. Install dependencies:
+1. Install uv (if not installed yet):
+
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. Install dependencies:
 
    ```bash
    uv sync
    ```
 
-2. Copy `.env.example` to `.env` and set your bot token:
+3. Copy `.env.example` to `.env` and set your bot token:
 
    ```bash
    cp .env.example .env
    ```
 
-3. Run:
+4. Run:
 
    ```bash
    uv run python bot.py
